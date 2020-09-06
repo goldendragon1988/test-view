@@ -28,6 +28,8 @@ class Registration extends Component {
       return console.error("Password Error");
     }
 
+    const { handleLogin, history } = this.props;
+
     const params = {
       user: {
         first_name: firstName,
@@ -38,15 +40,21 @@ class Registration extends Component {
       }
     }
 
+		axios.defaults.xsrfCookieName = "CSRF-TOKEN";
+		axios.defaults.xsrfHeaderName = "X-CSRF-Token";
+		axios.defaults.withCredentials = true;
+
     axios
       .post(
-        'http://localhost:3001/api/v1/public/registrations',
-        params,
-        { withCredentials: true }
+        'http://localhost:3001/users',
+        params
       )
       .then( resp => {
+        console.log("resp: ", resp);
         if(resp.status === 200) {
-          this.setState({...initialState, message: resp.data.message}, _ => { });
+          this.setState({...initialState, message: "Successfully Created a User"},
+            _ => handleLogin(resp.data, _ => history.push('/'))
+          );
         }
       })
       .catch( err => {

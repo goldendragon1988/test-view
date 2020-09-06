@@ -60,7 +60,7 @@ class Navigation extends Component {
             Home
           </Link>
         </li>
-        { this.props.isLogin ?
+        { !!this.props.user ?
             this.renderAuthNav() :
             this.renderUnauthNav()
         }

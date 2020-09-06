@@ -18,16 +18,22 @@ class ResetPassword extends Component {
       return this.setState({message: "Please check the password"})
     }
 
-    const { match: { params }, handleLogin, history } = this.props;
-
-    params.password = password
+    const { match: { params: {token} }, handleLogin, history } = this.props;
+    const user= {
+      password,
+      password_confirmation: passwordConfirmation,
+      reset_password_token: token
+    }
 
     axios
-      .post(
-        'http://localhost:3001/api/v1/public/reset_password',
-        {user: params}
+      .put(
+        'http://localhost:3001/users/password',
+        {
+          user
+        }
       )
       .then( resp => {
+        console.log("resp: ", resp);
         if(resp.status === 200) {
           const { data } = resp
           handleLogin(data, _ => history.push('/'))

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom';
 import axios from 'axios';
 
 import Home from './components/Home';
@@ -14,34 +14,26 @@ import ResetPassword from './components/ResetPassword';
 import './App.scss';
 
 const initialState = {
-  isLogin: false,
-  user: {}
+  user: null
 };
 
 class App extends Component {
   state = initialState;
 
   componentDidMount() {
+    axios.defaults.withCredentials = true;
     this.checkLoginStatus()
   }
 
   checkLoginStatus() {
-    const token = localStorage.getItem('token');
-    const params = {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    };
-
     axios
       .get(
-        'http://localhost:3001/api/v1/public/user_session',
-        params
+        'http://localhost:3001/signed_in'
       )
       .then( resp => {
+        console.log("resp: ", resp);
         if(resp.status === 200) {
-          const { data } = resp
-          this.handleLogin(data)
+          this.handleLogin(resp.data)
         }
       })
       .catch( err => {
@@ -49,12 +41,8 @@ class App extends Component {
       })
   }
 
-  handleLogin = (data, callback = null) => {
-    const {user, token} = data;
-
-    if(!!token) localStorage.setItem("token", token)
-
-    this.setState({user, isLogin: true}, _ => {
+  handleLogin = (user , callback = null) => {
+    this.setState({user}, _ => {
       if(!!callback) {
         callback();
       }
@@ -62,19 +50,31 @@ class App extends Component {
   }
 
   handleLogout = () => {
-    this.setState(initialState, _ => {
-      localStorage.removeItem('token');
-    })
+    axios
+      .delete(
+        'http://localhost:3001/users/sign_out',
+      )
+      .then( resp => {
+        console.log("resp: ", resp)
+        if(resp.status === 200) {
+          this.setState(initialState, _ => {
+            return <Redirect to={"/"} />
+          })
+        }
+      })
+      .catch( err => {
+        console.error("err: ", err);
+      })
   }
 
   render() {
-    const { user, isLogin } = this.state;
+    const { user } = this.state;
 
     return (
       <div className="App">
         <Router>
           <Navigation
-            isLogin={isLogin}
+            user={user}
             handleLogout={this.handleLogout}
           />
           <Switch>
@@ -99,7 +99,7 @@ class App extends Component {
             />
             <Route
               exact
-              path={"/reset_password/:id/:token"}
+              path={"/reset_password/:token"}
               render={ props => (
                 <ResetPassword
                   handleLogin={this.handleLogin}
@@ -138,6 +138,7 @@ class App extends Component {
               render={ props => (
                 <SignIn
                   handleLogin={this.handleLogin}
+                  axios={axios}
                   {...props}
                 />
               )}

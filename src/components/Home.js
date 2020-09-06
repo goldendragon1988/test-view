@@ -2,9 +2,10 @@ import React, { Component } from 'react';
 
 class Home extends Component {
   render() {
+    const { user } = this.props;
     return (
       <div>
-        Hi, {this.props.user.first_name}
+        { !!user ? `Hi, ${user.first_name}` : "Please Login" }
       </div>
     );
   }

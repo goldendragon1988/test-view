@@ -20,13 +20,13 @@ class RecoverAccount extends Component {
 
     axios
       .post(
-        'http://localhost:3001/api/v1/public/recover_account',
+        'http://localhost:3001/users/password',
         params,
       )
       .then( resp => {
         console.log("resp: ", resp);
         if(resp.status === 200) {
-          this.setState({...initialState, message: resp.data.message}, _ => {
+          this.setState({...initialState, message: "Please check your email"}, _ => {
           });
         }
       })
